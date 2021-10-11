@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class Cowin{
-    private Integer hospital_unique_id = 100000;
+    private Integer hospital_unique_id = 100000, count = 0;
     private ArrayList<Vaccine> vaccines;
     private ArrayList<Hospital> hospitals;
     private ArrayList<Citizen> citizens;
@@ -24,7 +24,7 @@ public class Cowin{
         Cowin vac = new Cowin();
         int choice;
         System.out.println("CoWin Portal Initialised....");
-        System.out.print("---------------------------------");
+        System.out.println("---------------------------------");
         while(true){
             System.out.println("1. Add Vaccine");
             System.out.println("2. Register Hospital");
@@ -54,7 +54,7 @@ public class Cowin{
                 System.out.print("---------------------------------");
                 break;
             }
-            System.out.print("---------------------------------");
+            System.out.println("---------------------------------");
         }
     }
 
@@ -63,12 +63,12 @@ public class Cowin{
         int a, b = 0;
         Vaccine vc = new Vaccine();
 
-        System.out.print("Vaccine Name: ");
+        System.out.println("Vaccine Name: ");
         name = br.readLine();
-        System.out.print("Number of Doses: ");
+        System.out.println("Number of Doses: ");
         a = Integer.parseInt(br.readLine());
         if(a>1){
-            System.out.print("Gap between Doses: ");
+            System.out.println("Gap between Doses: ");
             b = Integer.parseInt(br.readLine());
         }
 
@@ -84,12 +84,12 @@ public class Cowin{
         int a;
         Hospital hp = new Hospital();
 
-        System.out.print("Hospital Name: ");
+        System.out.println("Hospital Name: ");
         name = br.readLine();
-        System.out.print("\nPinCode: ");
+        System.out.println("PinCode: ");
         a = Integer.parseInt(br.readLine());
 
-        System.out.print("Hospital Name: " + name + ", PinCode: " + a + ", Unique ID: " + hospital_unique_id);
+        System.out.println("Hospital Name: " + name + ", PinCode: " + a + ", Unique ID: " + hospital_unique_id);
         hp.set_hospitalname(name);
         hp.set_pincode(a);
         hp.set_uniqueid(hospital_unique_id);
@@ -102,11 +102,11 @@ public class Cowin{
         int a;
         Citizen ct = new Citizen();
 
-        System.out.print("Citizen Name: ");
+        System.out.println("Citizen Name: ");
         name = br.readLine();
-        System.out.print("Age: ");
+        System.out.println("Age: ");
         a = Integer.parseInt(br.readLine());
-        System.out.print("Unique ID: ");
+        System.out.println("Unique ID: ");
         b = br.readLine();
 
         System.out.println("Citizen Name: " + name + ", Age: " + a + ", Unique ID: " + b);
@@ -124,11 +124,10 @@ public class Cowin{
     }
 
     public void create_slots() throws IOException{
-        int uid, numslots, day, quant, vac_no;
-        ArrayList<Integer> tem = new ArrayList<Integer>();
+        int uid, numslots;
         Hospital hp = new Hospital();
 
-        System.out.print("Enter Hospital ID: ");
+        System.out.println("Enter Hospital ID: ");
         uid = Integer.parseInt(br.readLine());
         for(Hospital hosp: hospitals){
             if(hosp.get_uniqueid()==uid){
@@ -136,17 +135,19 @@ public class Cowin{
                 break;
             }
         }
-        System.out.print("Enter number of Slots to be added: ");
+        System.out.println("Enter number of Slots to be added: ");
         numslots = Integer.parseInt(br.readLine());
         while(numslots>0){
-            int i = 0;
-            System.out.print("Enter Day Number: ");
+            ArrayList<Integer> tem = new ArrayList<Integer>();
+            int day, quant, vac_no, i = 0;
+
+            System.out.println("Enter Day Number: ");
             day = Integer.parseInt(br.readLine());
-            System.out.print("Enter Quantity: ");
+            System.out.println("Enter Quantity: ");
             quant = Integer.parseInt(br.readLine());
-            System.out.print("Select Vaccine: ");
+            System.out.println("Select Vaccine: ");
             for(Vaccine temp: vaccines){
-                System.out.print("\n" + i + ". " + temp.get_vacname());
+                System.out.println(i + ". " + temp.get_vacname());
                 i++;
             }
             vac_no = Integer.parseInt(br.readLine());
@@ -154,13 +155,14 @@ public class Cowin{
             tem.add(day);
             tem.add(quant);
             tem.add(vac_no);
-            hp.set_slotlist(tem);
+            tem.add(count);
+            hp.add_slotlist(tem);
 
             System.out.println("Slot added by: " + uid + " for Day " + day + ", Available Quantity: " + quant + " of Vaccine " + vaccines.get(vac_no).get_vacname());
             numslots--;
+            count++;
         }
         slots.put(uid, hp);
-        System.out.println(slots);
     }
 
     public void book_slot() throws IOException{
@@ -169,7 +171,8 @@ public class Cowin{
         Hospital hp;
         Citizen citiz = new Citizen();
         ArrayList<Integer> cur = new ArrayList<Integer>();
-        ArrayList<Integer> tem = new ArrayList<Integer>();
+        ArrayList<Integer> tem1 = new ArrayList<Integer>();
+        ArrayList<ArrayList<Integer>> tem = new ArrayList<ArrayList<Integer>>();
 
         System.out.println("Enter patient Unique ID: ");
         uid = br.readLine();
@@ -184,7 +187,7 @@ public class Cowin{
             pincode = Integer.parseInt(br.readLine());
             for(Hospital hosp: hospitals){
                 if(hosp.get_pincode()==pincode){
-                    System.out.print(hosp.get_uniqueid() + " " + hosp.get_hospitalname());
+                    System.out.println(hosp.get_uniqueid() + " " + hosp.get_hospitalname());
                     break;
                 }
             }
@@ -202,64 +205,95 @@ public class Cowin{
         }
 
         if(choice == 1 || choice == 2){
+            for(Citizen ct: citizens){
+                if(ct.get_uid().equals(uid)){
+                    citiz = ct;
+                    break;
+                }
+            }
+
             System.out.println("Enter hospital id: ");
             hpid = Integer.parseInt(br.readLine());
             hp = slots.get(hpid);
-            ArrayList<ArrayList<Integer>> slot = hp.get_slotlist();
-            int c = 0;
-            if(slot.size()>0){
-                for(ArrayList<Integer> curr: slot){
-                    System.out.println(c + "-> Day: " + curr.get(0) + ", Available Qty: " + curr.get(1) + ", Vaccine: " + vaccines.get(curr.get(2)).get_vacname());
-                    c++;
-                }
-                System.out.println("Choose Slot: ");
-                slotchoice = Integer.parseInt(br.readLine());
-                for(Citizen ct: citizens){
-                    if(ct.get_uid().equals(uid)){
-                        citiz = ct;
-                        break;
-                    }
-                }
-                System.out.println(citiz.get_citizenname() + " vaccinated with " + vaccines.get(slot.get(slotchoice).get(2)).get_vacname());
-                if(citiz.get_status().equals("REGISTERED")){
-                    citiz.set_status("PARTIALLY VACCINATED");
-                    citiz.set_doses(1);
-                    if(vaccines.get(slot.get(slotchoice).get(2)).get_doses()==1){
-                        citiz.set_status("FULLY VACCINATED");
-                    }
-                }else if(citiz.get_status().equals("PARTIALLY VACCINATED")){
-                    int doz = citiz.get_doses();
-                    doz++;
-                    citiz.set_doses(doz);
-                    if(doz==vaccines.get(slot.get(slotchoice).get(2)).get_doses()){
-                        citiz.set_status("FULLY VACCINATED");
-                    }
-                }
-                citiz.set_received(vaccines.get(slot.get(slotchoice).get(2)).get_vacname());
-                booked_slot.put(uid, citiz);
-
-                cur = slot.get(slotchoice);
-                qty = cur.get(1);
-                if(qty>0)   qty--;
-                tem.add(cur.get(0));
-                tem.add(qty);
-                tem.add(cur.get(2));
-                hp.set_slotlist(tem);
-
-                citiz.set_day(tem.get(0));
+            if(citiz.get_status().equals("PARTIALLY VACCINATED") && citiz.get_hospid()==hpid){
+                System.out.println("No slots available");
             }else{
-                System.out.println("No slots available for this hospital");
+                int c = 0;
+                ArrayList<Integer> tt = new ArrayList<Integer>();
+                ArrayList<ArrayList<Integer>> slot = hp.get_slotlist();
+                if(slot.size()>0){
+                    for(ArrayList<Integer> curr: slot){
+                        tt.add(curr.get(3));
+                        if(citiz.get_status().equals("REGISTERED")){
+                            System.out.println(curr.get(3) + "-> Day: " + curr.get(0) + ", Available Qty: " + curr.get(1) + ", Vaccine: " + vaccines.get(curr.get(2)).get_vacname());
+                        }else if(curr.get(0) >= (citiz.get_day() + vaccines.get(curr.get(2)).get_gaps())){
+                            System.out.println(curr.get(3) + "-> Day: " + curr.get(0) + ", Available Qty: " + curr.get(1) + ", Vaccine: " + vaccines.get(curr.get(2)).get_vacname());
+                        }
+                    }
+                    System.out.println("Choose Slot: ");
+                    slotchoice = Integer.parseInt(br.readLine());
+                    for(int i = 0; i<tt.size(); i++){
+                        if(tt.get(i)==slotchoice){
+                            c = i;
+                            break;
+                        }
+                    }
+                    System.out.println(citiz.get_citizenname() + " vaccinated with " + vaccines.get(slot.get(c).get(2)).get_vacname());
+                    if(citiz.get_status().equals("REGISTERED")){
+                        citiz.set_status("PARTIALLY VACCINATED");
+                        citiz.set_doses(1);
+                        if(vaccines.get(slot.get(c).get(2)).get_doses()==1){
+                            citiz.set_status("FULLY VACCINATED");
+                        }
+                    }else if(citiz.get_status().equals("PARTIALLY VACCINATED")){
+                        int doz = citiz.get_doses();
+                        doz++;
+                        citiz.set_doses(doz);
+                        if(doz==vaccines.get(slot.get(c).get(2)).get_doses()){
+                            citiz.set_status("FULLY VACCINATED");
+                        }
+                    }
+                    citiz.set_received(vaccines.get(slot.get(c).get(2)).get_vacname());
+                    booked_slot.put(uid, citiz);
+
+                    cur = slot.get(c);
+                    qty = cur.get(1);
+                    if(qty>0)   qty--;
+                    tem1.add(cur.get(0));
+                    tem1.add(qty);
+                    tem1.add(cur.get(2));
+                    tem1.add(cur.get(3));
+                    for(int x = 0; x<slot.size(); x++){
+                        if(x==c){
+                            tem.add(tem1);
+                        }else{
+                            tem.add(slot.get(c));
+                        }
+                    }
+                    hp.set_slotlist(tem);
+
+                    citiz.set_day(tem1.get(0));
+                    citiz.set_hospid(hpid);
+                }else{
+                    System.out.println("No slots available");
+                }
             }
+        }else{
+            System.out.println("No slots available for this hospital");
         }
     }
 
     public void available_slots() throws IOException{
         int uid;
         Hospital curr;
+
         System.out.println("Enter Hospital ID: ");
         uid = Integer.parseInt(br.readLine());
         curr = slots.get(uid);
-        for(ArrayList<Integer> arr: curr.get_slotlist()){
+
+        ArrayList<ArrayList<Integer>> temp = curr.get_slotlist();
+
+        for(ArrayList<Integer> arr: temp){
             System.out.println("Day: " + arr.get(0) + ", Vaccine: " + vaccines.get(arr.get(2)).get_vacname() + ", Available Qty: " + arr.get(1));
         }
     }
@@ -343,7 +377,10 @@ class Hospital{
     public void set_uniqueid(Integer uid){
         this.unique_id = uid;
     }
-    public void set_slotlist(ArrayList<Integer> slot){
+    public void set_slotlist(ArrayList<ArrayList<Integer>> slot){
+        this.slotlist = slot;
+    }
+    public void add_slotlist(ArrayList<Integer> slot){
         this.slotlist.add(slot);
     }
     public ArrayList<ArrayList<Integer>> get_slotlist(){
@@ -352,8 +389,8 @@ class Hospital{
 }
 
 class Citizen{
-    private String citizename, uid, status, vac_received;
-    private Integer age, daynum, dosesgiven;
+    private String citizename, uid, vac_received, status = "placeholder";
+    private Integer age, daynum, dosesgiven, hospid;
 
     public String get_citizenname(){
         return citizename;
@@ -396,5 +433,11 @@ class Citizen{
     }
     public void set_doses(int doses){
         this.dosesgiven = doses;
+    }
+    public Integer get_hospid(){
+        return hospid;
+    }
+    public void set_hospid(int uid){
+        this.hospid = uid;
     }
 }
