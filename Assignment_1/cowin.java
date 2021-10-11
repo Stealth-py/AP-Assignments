@@ -4,33 +4,24 @@ import java.io.*;
 import java.util.*;
 
 public class Cowin{
-    public ArrayList<Vaccine> vaccines;
+    private Integer hospital_unique_id = 100000;
+    private ArrayList<Vaccine> vaccines;
     private ArrayList<Hospital> hospitals;
+    private ArrayList<Citizen> citizens;
     private HashMap<Integer, Hospital> slots;
+    private HashMap<String, Citizen> booked_slot;
     private BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     Cowin(){
         vaccines = new ArrayList<Vaccine>();
         hospitals = new ArrayList<Hospital>();
+        citizens = new ArrayList<Citizen>();
         slots = new HashMap<Integer, Hospital>();
+        booked_slot = new HashMap<String, Citizen>();
     }
 
     public static void main(String[] args) throws IOException{
         Cowin vac = new Cowin();
-        int i = 2;
-        while(i>0){
-            vac.add_vaccine();
-            System.out.println("\n-------------------------------------");
-            i--;
-        }
-        i = 2;
-        while(i>0){
-            vac.register_hospital();
-            System.out.println();
-            System.out.println("\n-------------------------------------");
-            i--;
-        }
-        vac.create_slots();
     }
 
     public void add_vaccine() throws IOException{
@@ -46,8 +37,8 @@ public class Cowin{
             System.out.print("Gap between Doses: ");
             b = Integer.parseInt(br.readLine());
         }
-        System.out.println("Vaccine Name: " + name + ", Number of Doses: " + a + ", Gap Between Doses: " + b);
 
+        System.out.println("Vaccine Name: " + name + ", Number of Doses: " + a + ", Gap Between Doses: " + b);
         vc.set_vacname(name);
         vc.set_doses(a);
         vc.set_dosesgap(b);
@@ -63,24 +54,36 @@ public class Cowin{
         name = br.readLine();
         System.out.print("\nPinCode: ");
         a = Integer.parseInt(br.readLine());
+
+        System.out.print("Hospital Name: " + name + ", PinCode: " + a + ", Unique ID: " + hospital_unique_id);
         hp.set_hospitalname(name);
         hp.set_pincode(a);
+        hp.set_uniqueid(hospital_unique_id);
         hospitals.add(hp);
-
-        System.out.print("Hospital Name: " + name + ", PinCode: " + a + ", Unique ID: " + Hospital.get_uniqueid());
+        hospital_unique_id++;
     }
 
     public void register_citizens() throws IOException{
-        String name, a, b;
+        String name, b;
+        int a;
+        Citizen ct = new Citizen();
 
         System.out.print("Citizen Name: ");
         name = br.readLine();
         System.out.print("Age: ");
-        a = br.readLine();
+        a = Integer.parseInt(br.readLine());
         System.out.print("Unique ID: ");
         b = br.readLine();
 
-        System.out.println("Vaccine Name: " + name + ", Number of Doses: " + a + ", Gap Between Doses: " + b);
+        System.out.println("Citizen Name: " + name + ", Age: " + a + ", Unique ID: " + b);
+        if(a<18){
+            System.out.println("Only above 18 are allowed");
+        }else{
+            ct.set_age(a);
+            ct.set_citizenname(name);
+            ct.set_uid(b);
+            citizens.add(ct);
+        }
     }
 
     public void create_slots() throws IOException{
@@ -90,6 +93,12 @@ public class Cowin{
 
         System.out.print("Enter Hospital ID: ");
         uid = Integer.parseInt(br.readLine());
+        for(Hospital hosp: hospitals){
+            if(hosp.get_uniqueid()==uid){
+                hp = hosp;
+                break;
+            }
+        }
         System.out.print("Enter number of Slots to be added: ");
         numslots = Integer.parseInt(br.readLine());
         while(numslots>0){
@@ -115,6 +124,35 @@ public class Cowin{
         }
         slots.put(uid, hp);
         System.out.println(slots);
+    }
+
+    public void book_slot() throws IOException{
+        String uid;
+        int choice;
+        Hospital hp;
+
+        System.out.println("Enter patient Unique ID: ");
+        uid = br.readLine();
+        System.out.println("1. Search by area");
+        System.out.println("2. Search by Vaccine");
+        System.out.println("3. Exit");
+        System.out.println("Enter option: ");
+        choice = Integer.parseInt(br.readLine());
+
+        if(choice==1){
+            int pincode, hpid;
+            System.out.println("Enter PinCode: ");
+            pincode = Integer.parseInt(br.readLine());
+            for(Hospital hosp: hospitals){
+                if(hosp.get_pincode()==pincode){
+                    System.out.print(hosp.get_uniqueid() + " " + hosp.get_hospitalname());
+                }
+            }
+            System.out.println("Enter Unique ID: ");
+            hpid = Integer.parseInt(br.readLine());
+            hp = slots.get(hpid);
+            ArrayList<ArrayList<Integer>> slot = hp.get_slotlist();
+        }
     }
 }
 
@@ -143,10 +181,9 @@ class Vaccine{
 }
 
 class Hospital{
-    private static Integer unique_id = 99999;
-    private Integer pincode;
+    private Integer unique_id, pincode;
     private String hospitalname;
-    private static ArrayList<Integer> slotlist = new ArrayList<Integer>();
+    private ArrayList<ArrayList<Integer>> slotlist = new ArrayList<ArrayList<Integer>>();
 
     public Integer get_pincode(){
         return pincode;
@@ -160,13 +197,47 @@ class Hospital{
     public void set_hospitalname(String hospitalname){
         this.hospitalname = hospitalname;
     }
-    public static Integer get_uniqueid(){
+    public Integer get_uniqueid(){
         return unique_id;
     }
-    public void set_slotlist(ArrayList<Integer> slot){
-        Hospital.slotlist = slot;
+    public void set_uniqueid(Integer uid){
+        this.unique_id = uid;
     }
-    public static ArrayList<Integer> get_slotlist(){
+    public void set_slotlist(ArrayList<Integer> slot){
+        this.slotlist.add(slot);
+    }
+    public ArrayList<ArrayList<Integer>> get_slotlist(){
         return slotlist;
+    }
+}
+
+class Citizen{
+    private String citizename, uid;
+    private Integer age;
+    private static ArrayList<Integer> received = new ArrayList<Integer>();
+
+    public String get_citizenname(){
+        return citizename;
+    }
+    public void set_citizenname(String name){
+        this.citizename = name;
+    }
+    public String get_uid(){
+        return uid;
+    }
+    public void set_uid(String uid){
+        this.uid = uid;
+    }
+    public Integer get_age(){
+        return age;
+    }
+    public void set_age(Integer age){
+        this.age = age;
+    }
+    public void set_received(ArrayList<Integer> dose){
+        Citizen.received = dose;
+    }
+    public static ArrayList<Integer> get_received(){
+        return received;
     }
 }
