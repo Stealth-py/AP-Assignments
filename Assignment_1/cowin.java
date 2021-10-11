@@ -267,7 +267,7 @@ public class Cowin{
                         if(x==c){
                             tem.add(tem1);
                         }else{
-                            tem.add(slot.get(c));
+                            tem.add(slot.get(x));
                         }
                     }
                     hp.set_slotlist(tem);
