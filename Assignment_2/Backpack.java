@@ -29,16 +29,19 @@ interface users{
     public String getname();
     public void login();
     public void view_lecture_materials(ArrayList<lectureMats> lec);
-    // public void logout();
-    // public void view_comments();
-    // public void add_comments();
+    public void view_comments(ArrayList<comments> com);
+    public comments add_comments() throws IOException;
+    public boolean logout();
 }
 
 
 public class Backpack {
+    private static ArrayList<students> student = new ArrayList<students>();
     private static ArrayList<instructor> instructors = new ArrayList<instructor>();
     private static ArrayList<lectureMats> lecmats = new ArrayList<lectureMats>();
     private static ArrayList<assessments> assessment = new ArrayList<assessments>();
+    private static ArrayList<comments> comment = new ArrayList<comments>();
+    private static HashMap<Integer, HashMap<students, Integer>> graded = new HashMap<>();
     private static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     public static void main(String[] args) throws IOException{
@@ -53,23 +56,23 @@ public class Backpack {
             if(choice==3){
                 flag = false;
             }else if(choice==1){
+                int cf = 0;
                 boolean logged = true;
+                System.out.println("Instructors:");
+                System.out.println("0 - i0");
+                System.out.println("1 - i1");
+                System.out.println("Choose id: ");
+                cf = Integer.parseInt(br.readLine());
                 while(logged){
-                    int c = 0;
                     flag = true;
                     instructor i0 = new instructor("i0");
                     instructor i1 = new instructor("i1");
                     instructors.add(i0);
                     instructors.add(i1);
 
-                    System.out.println("Instructors:");
-                    System.out.println("0 - i0");
-                    System.out.println("1 - i1");
-                    System.out.println("Choose id: ");
-                    c = Integer.parseInt(br.readLine());
-                    instructor curr = instructors.get(c);
+                    instructor curr = instructors.get(cf);
                     curr.login();
-                    c = Integer.parseInt(br.readLine());
+                    int c = Integer.parseInt(br.readLine());
                     if(c==1){
                         System.out.println("1. Add Lecture Slide" + "\n2. Add Lecture Video");
                         int x = Integer.parseInt(br.readLine());
@@ -97,15 +100,116 @@ public class Backpack {
                             System.out.println("Enter max marks: ");
                             int max = Integer.parseInt(br.readLine());
                             curr.add_assignment(state, max, assessment.size(), y);
+                            assessment.add(y);
+                        }else if(x==2){
+                            quizzes y = new quizzes();
+                            System.out.println("Enter quiz question: ");
+                            String state = br.readLine();
+                            curr.add_quiz(state, assessment.size(), y);
+                            assessment.add(y);
                         }
                     }else if(c==3){
                         curr.view_lecture_materials(lecmats);
                     }else if(c==4){
-                        
+                        curr.view_assessments(assessment);
+                    }else if(c==5){
+                        graded = curr.grade_assessments(assessment, graded);
+                    }else if(c==6){
+                        assessment = curr.close_assessment(assessment);
+                    }else if(c==7){
+                        curr.view_comments(comment);
+                    }else if(c==8){
+                        comments tmp = curr.add_comments();
+                        comment.add(tmp);
+                    }else{
+                        logged = curr.logout();
+                    }
+                }
+            }else if(choice==2){
+                boolean logged = true;
+                int cf = 0;
+                System.out.println("Students:");
+                System.out.println("0 - s0");
+                System.out.println("1 - s1");
+                System.out.println("2 - s2");
+                System.out.println("Choose id: ");
+                cf = Integer.parseInt(br.readLine());
+                while(logged){
+                    flag = true;
+                    students s0 = new students("s0");
+                    students s1 = new students("s1");
+                    students s2 = new students("s2");
+                    student.add(s0);
+                    student.add(s1);
+                    student.add(s2);
+
+                    students curr = student.get(cf);
+                    curr.login();
+                    int c = Integer.parseInt(br.readLine());
+                    if(c==1){
+                        curr.view_lecture_materials(lecmats);
+                    }else if(c==2){
+                        curr.view_assessments(assessment);
+                    }else if(c==3){
+                        curr.submit_assessments(assessment);
+                    }else if(c==4){
+                        System.out.println("Graded submissions");
+                        ArrayList<Integer> sub_graded = curr.get_sub_graded();
+                        if(sub_graded.size()==0){
+                            System.err.println("No graded submissions!");
+                        }else{
+                            HashMap<Integer, String> hm = curr.get_submission_hm();
+                            for(Integer id: sub_graded){
+                                System.out.println("Submission: " + hm.get(id));
+                                HashMap<students, Integer> hmm = graded.get(id);
+                                System.out.println("Marks scored: " + hmm.get(curr));
+                                HashMap<Integer, String> whograded = curr.get_whograded();
+                                System.out.println("Graded by: " + whograded.get(id));
+                            }
+                        }
+                        System.out.println("Ungraded submissions");
+                        HashMap<Integer, String> hm = curr.get_submission_hm();
+                        for(Integer id: curr.get_submission()){
+                            if(!(sub_graded.contains(id))){
+                                System.out.println("Submission: " + hm.get(id));
+                            }
+                        }
+                    }else if(c==5){
+                        curr.view_comments(comment);
+                    }else if(c==6){
+                        comments tmp = curr.add_comments();
+                        comment.add(tmp);
+                    }else{
+                        logged = curr.logout();
                     }
                 }
             }
         }
+    }
+}
+
+class comments{
+    private String cmnt, name;
+    Date date;
+
+    comments(){
+        date = new Date();
+    }
+
+    public String get_comment(){
+        return this.cmnt;
+    }
+    public void set_comment(String cmnt){
+        this.cmnt = cmnt;
+    }
+    public String get_author(){
+        return this.name;
+    }
+    public void set_author(String name){
+        this.name = name;
+    }
+    public Date get_date(){
+        return this.date;
     }
 }
 
@@ -136,6 +240,56 @@ class assignments implements assessments{
     }
     public void set_max(int max){
         this.max_marks = max;
+    }
+    public instructor get_inst(){
+        return this.prof;
+    }
+    public void set_prof(instructor prof){
+        this.prof = prof;
+    }
+    public void view_assessments(){
+        System.err.println("Assignment: " + this.statement + " || Max Marks: " + this.max_marks);
+    }
+    public void close_assessment(){
+        this.closed = true;
+    }
+    public boolean is_closed(){
+        return this.closed;
+    }
+    public void submit(students s, String sub){
+        HashMap<students, String> hm = new HashMap<students, String>();
+        hm.put(s, sub);
+        submissions.add(hm);
+    }
+    public ArrayList<HashMap<students, String>> get_submissions(){
+        return this.submissions;
+    }
+}
+
+class quizzes implements assessments{
+    private String statement, type = "quiz";
+    private int max_marks = 1, id;
+    boolean closed = false;
+    private instructor prof;
+    ArrayList<HashMap<students, String>> submissions = new ArrayList<HashMap<students, String>>();
+
+    public Integer get_id(){
+        return this.id;
+    }
+    public String get_type(){
+        return this.type;
+    }
+    public void set_id(Integer id){
+        this.id = id;
+    }
+    public String get_statement(){
+        return this.statement;
+    }
+    public void set_statement(String state){
+        this.statement = state;
+    }
+    public Integer get_max(){
+        return 1;
     }
     public instructor get_inst(){
         return this.prof;
@@ -313,10 +467,22 @@ class instructor implements users{
         a.set_statement(state);
         this.added.add(a);
     }
-    public void grade_assessments(ArrayList<assignments> arr) throws IOException{
+    public void add_quiz(String state, Integer id, quizzes q){
+        q.set_id(id);
+        q.set_statement(state);
+        this.added.add(q);
+    }
+    public void view_assessments(ArrayList<assessments> assessment){
+        for(assessments each: assessment){
+            if(!(each.is_closed())){
+                each.view_assessments();
+            }
+        }
+    }
+    public HashMap<Integer, HashMap<students, Integer>> grade_assessments(ArrayList<assessments> arr, HashMap<Integer, HashMap<students, Integer>> graded) throws IOException{
         System.out.println("List of assessments");
         if(arr.size()>0){
-            for(assignments each: arr){
+            for(assessments each: arr){
                 if(each.get_type().equals("assign")){
                     System.out.println("ID: " + each.get_id() + " || Assignment: " + each.get_statement() + " || Max Marks: " + each.get_max());
                 }else{
@@ -331,6 +497,7 @@ class instructor implements users{
             ArrayList<HashMap<students, String>> subs = ass.get_submissions();
             if(subs.size()==0){
                 System.out.println("No submission found");
+                return graded;
             }else{
                 int b = 0, ch;
                 for(HashMap<students, String> hm: subs){
@@ -351,22 +518,87 @@ class instructor implements users{
                 System.out.println("Max Marks: " + ass.get_max());
                 System.out.println("Marks scored: ");
                 int scored = Integer.parseInt(br.readLine());
+                HashMap<students, Integer> hMap = new HashMap<>();
+                hMap.put(tmp, scored);
+                graded.put(ch, hMap);
+                tmp.add_sub_graded(ch);
+                tmp.set_whograded(ch, this.name);
+                return graded;
             }
         }else{
             System.out.println("No pending assessments");
+            return graded;
         }
+    }
+    public ArrayList<assessments> close_assessment(ArrayList<assessments> arr) throws IOException{
+        System.out.println("List of open assignments:");
+        for(assessments each: arr){
+            if(!(each.is_closed())){
+                each.view_assessments();
+            }
+        }
+        System.out.println("Enter id of assessment to close: ");
+        int id = Integer.parseInt(br.readLine());
+        assessments cur = arr.get(id);
+        cur.close_assessment();
+        
+        ArrayList<assessments> temp = new ArrayList<assessments>();
+        int x = 0;
+        for(assessments each: arr){
+            if(x==id){
+                temp.add(cur);
+            }else{
+                temp.add(each);
+            }
+        }
+        return temp;
+    }
+    public void view_comments(ArrayList<comments> com){
+        for(comments each: com){
+            System.out.println(each.get_comment() + " - " + each.get_author());
+            System.out.println(each.get_date());
+        }
+    }
+    public comments add_comments() throws IOException{
+        System.out.println("Enter comment: ");
+        String txt = br.readLine();
+        comments com = new comments();
+        com.set_comment(txt);
+        com.set_author(this.name);
+        return com;
+    }
+    public boolean logout(){
+        return false;
     }
 }
 
 class students implements users{
     private String name;
     ArrayList<Integer> submitted = new ArrayList<Integer>();
+    ArrayList<Integer> sub_grade = new ArrayList<Integer>();
+    HashMap<Integer, String> submission = new HashMap<>();
+    HashMap<Integer, String> who_graded = new HashMap<>();
     private static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     students(String name){
         this.name = name;
     }
     
+    public HashMap<Integer, String> get_whograded(){
+        return this.who_graded;
+    }
+    public void set_whograded(Integer id, String name){
+        this.who_graded.put(id, name);
+    }
+    public ArrayList<Integer> get_sub_graded(){
+        return sub_grade;
+    }
+    public void add_sub_graded(Integer id){
+        this.sub_grade.add(id);
+    }
+    public HashMap<Integer, String> get_submission_hm(){
+        return submission;
+    }
     public String getname(){
         return this.name;
     }
@@ -415,14 +647,38 @@ class students implements users{
                 String filename = br.readLine();
                 if(filename.contains(".zip")){
                     submitted.add(id);
+                    submission.put(id, filename);
                     return true;
                 }else{
                     return false;
                 }
             }else{
-                //quiz stuff
+                System.out.println(a.get_statement());
+                String ans = br.readLine();
+                submitted.add(id);
+                submission.put(id, ans);
                 return true;
             }
         }
+    }
+    public void view_comments(ArrayList<comments> com){
+        for(comments each: com){
+            System.out.println(each.get_comment() + " - " + each.get_author());
+            System.out.println(each.get_date());
+        }
+    }
+    public comments add_comments() throws IOException{
+        System.out.println("Enter comment: ");
+        String txt = br.readLine();
+        comments com = new comments();
+        com.set_comment(txt);
+        com.set_author(this.name);
+        return com;
+    }
+    public boolean logout(){
+        return false;
+    }
+    public ArrayList<Integer> get_submission(){
+        return submitted;
     }
 }
