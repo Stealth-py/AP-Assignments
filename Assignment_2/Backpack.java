@@ -168,6 +168,7 @@ public class Backpack {
                                 System.out.println("Graded by: " + whograded.get(id));
                             }
                         }
+                        System.out.println("------------------------------------------------");
                         System.out.println("Ungraded submissions");
                         HashMap<Integer, String> hm = curr.get_submission_hm();
                         for(Integer id: curr.get_submission()){
@@ -689,6 +690,7 @@ class students implements users{
         for(comments each: com){
             System.out.println(each.get_comment() + " - " + each.get_author());
             System.out.println(each.get_date());
+            System.out.println("\n");
         }
     }
     public comments add_comments() throws IOException{
