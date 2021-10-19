@@ -124,6 +124,7 @@ public class Backpack {
                     }else{
                         logged = curr.logout();
                     }
+                    System.out.println("\n------------------------------------------------------------------\n");
                 }
             }else if(choice==2){
                 boolean logged = true;
@@ -182,6 +183,7 @@ public class Backpack {
                     }else{
                         logged = curr.logout();
                     }
+                    System.out.println("\n------------------------------------------------------------------\n");
                 }
             }
         }
@@ -219,6 +221,10 @@ class assignments implements assessments{
     boolean closed = false;
     private instructor prof;
     ArrayList<HashMap<students, String>> submissions = new ArrayList<HashMap<students, String>>();
+
+    assignments(){
+        this.type = "assign";
+    }
 
     public Integer get_id(){
         return this.id;
@@ -259,7 +265,7 @@ class assignments implements assessments{
     public void submit(students s, String sub){
         HashMap<students, String> hm = new HashMap<students, String>();
         hm.put(s, sub);
-        submissions.add(hm);
+        this.submissions.add(hm);
     }
     public ArrayList<HashMap<students, String>> get_submissions(){
         return this.submissions;
@@ -272,6 +278,10 @@ class quizzes implements assessments{
     boolean closed = false;
     private instructor prof;
     ArrayList<HashMap<students, String>> submissions = new ArrayList<HashMap<students, String>>();
+
+    quizzes(){
+        this.type = "quiz";
+    }
 
     public Integer get_id(){
         return this.id;
@@ -298,7 +308,7 @@ class quizzes implements assessments{
         this.prof = prof;
     }
     public void view_assessments(){
-        System.err.println("Assignment: " + this.statement + " || Max Marks: " + this.max_marks);
+        System.err.println("Quiz: " + this.statement + " || Max Marks: " + this.max_marks);
     }
     public void close_assessment(){
         this.closed = true;
@@ -309,7 +319,7 @@ class quizzes implements assessments{
     public void submit(students s, String sub){
         HashMap<students, String> hm = new HashMap<students, String>();
         hm.put(s, sub);
-        submissions.add(hm);
+        this.submissions.add(hm);
     }
     public ArrayList<HashMap<students, String>> get_submissions(){
         return this.submissions;
@@ -459,6 +469,7 @@ class instructor implements users{
     public void view_lecture_materials(ArrayList<lectureMats> lecmat){
         for(lectureMats each: lecmat){
             each.view_lecture_material();
+            System.out.println("\n");
         }
     }
     public void add_assignment(String state, Integer max, Integer id, assignments a){
@@ -476,6 +487,7 @@ class instructor implements users{
         for(assessments each: assessment){
             if(!(each.is_closed())){
                 each.view_assessments();
+                System.out.println("------------------------------------------------");
             }
         }
     }
@@ -486,6 +498,7 @@ class instructor implements users{
                 if(each.get_type().equals("assign")){
                     System.out.println("ID: " + each.get_id() + " || Assignment: " + each.get_statement() + " || Max Marks: " + each.get_max());
                 }else{
+                    System.out.println("HAHAHHAHASF USAI NO: " + each.get_type());
                     System.out.println("ID: " + each.get_id() + " || Quiz: " + each.get_statement() + " || Max Marks: " + each.get_max());
                 }
                 System.out.println("------------------------------------------------------------");
@@ -534,7 +547,9 @@ class instructor implements users{
         System.out.println("List of open assignments:");
         for(assessments each: arr){
             if(!(each.is_closed())){
+                System.out.print("\nID: " + each.get_id());
                 each.view_assessments();
+                System.err.println("--------------------------------------");
             }
         }
         System.out.println("Enter id of assessment to close: ");
@@ -591,7 +606,7 @@ class students implements users{
         this.who_graded.put(id, name);
     }
     public ArrayList<Integer> get_sub_graded(){
-        return sub_grade;
+        return this.sub_grade;
     }
     public void add_sub_graded(Integer id){
         this.sub_grade.add(id);
@@ -646,8 +661,9 @@ class students implements users{
                 System.out.println("Enter filename of assignment: ");
                 String filename = br.readLine();
                 if(filename.contains(".zip")){
-                    submitted.add(id);
-                    submission.put(id, filename);
+                    this.submitted.add(id);
+                    this.submission.put(id, filename);
+                    a.submit(this, filename);
                     return true;
                 }else{
                     return false;
@@ -655,8 +671,9 @@ class students implements users{
             }else{
                 System.out.println(a.get_statement());
                 String ans = br.readLine();
-                submitted.add(id);
-                submission.put(id, ans);
+                this.submitted.add(id);
+                this.submission.put(id, ans);
+                a.submit(this, ans);
                 return true;
             }
         }
@@ -679,6 +696,6 @@ class students implements users{
         return false;
     }
     public ArrayList<Integer> get_submission(){
-        return submitted;
+        return this.submitted;
     }
 }
