@@ -631,12 +631,14 @@ class students implements users{
     public void view_lecture_materials(ArrayList<lectureMats> lecmat){
         for(lectureMats each: lecmat){
             each.view_lecture_material();
+            System.out.println("\n");
         }
     }
     public void view_assessments(ArrayList<assessments> assessment){
         for(assessments each: assessment){
             if(!(each.is_closed())){
                 each.view_assessments();
+                System.out.println("------------------------------------------------");
             }
         }
     }
@@ -645,7 +647,12 @@ class students implements users{
         for(assessments each: ass){
             if(!(submitted.contains(each.get_id()))){
                 if(!(each.is_closed())){
-                    System.out.println("ID: " + each.get_id() + " || Question: " + each.get_statement());
+                    if(each.get_type()=="quiz"){
+                        System.out.println("ID: " + each.get_id() + " || Question: " + each.get_statement());
+                    }else{
+                        System.out.println("ID: " + each.get_id() + " || Assignment: " + each.get_statement());
+                    }
+                    System.out.println("------------------------------------------------");
                     c = 1;
                 }
             }
